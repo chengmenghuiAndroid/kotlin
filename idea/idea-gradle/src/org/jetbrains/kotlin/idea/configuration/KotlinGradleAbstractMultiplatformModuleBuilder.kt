@@ -38,6 +38,7 @@ abstract class KotlinGradleAbstractMultiplatformModuleBuilder : GradleModuleBuil
             val rootDir = module.rootManager.contentRoots.firstOrNull() ?: return
             val buildGradle = rootDir.findOrCreateChildData(null, "build.gradle")
             val builder = BuildScriptDataBuilder(buildGradle)
+            builder.setupAdditionalDependencies()
             GradleKotlinMPPFrameworkSupportProvider().addSupport(builder, module, sdk = null, specifyPluginVersionIfNeeded = true)
             VfsUtil.saveText(buildGradle, builder.buildConfigurationPart() + builder.buildMainPart() + buildMultiPlatformPart())
             createProjectSkeleton(module, rootDir)
@@ -48,12 +49,16 @@ abstract class KotlinGradleAbstractMultiplatformModuleBuilder : GradleModuleBuil
 
     protected abstract fun buildMultiPlatformPart(): String
 
+    protected open fun BuildScriptDataBuilder.setupAdditionalDependencies() {}
+
+    protected fun VirtualFile.bufferedWriter() = getOutputStream(this).bufferedWriter()
+
     protected fun VirtualFile.createKotlinSampleFileWriter(sourceRootName: String, fileName: String = "Sample.kt") =
         createChildDirectory(this, sourceRootName)
             .createChildDirectory(this, "kotlin")
             .createChildDirectory(this, "sample")
             .createChildData(this, fileName)
-            .getOutputStream(this).bufferedWriter()
+            .bufferedWriter()
 
     protected open fun createProjectSkeleton(module: Module, rootDir: VirtualFile) {}
 
